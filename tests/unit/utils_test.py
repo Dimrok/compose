@@ -68,3 +68,34 @@ class TestParseBytes(object):
         assert utils.parse_bytes(123) == 123
         assert utils.parse_bytes('foobar') is None
         assert utils.parse_bytes('123') == 123
+
+
+class TestRandomIDs(object):
+    def test_truncate_id(self):
+        # Assert it takes up to the first twelve.
+        assert utils.truncate_id('0123456789ABCDEF') == '0123456789AB'
+        assert utils.truncate_id('01') == '01'
+        # Assert it takes up to the first twelve after the semicolon.
+        assert utils.truncate_id('01:2345') == '2345'
+        assert utils.truncate_id('0:123456789ABCDEF') == '123456789ABC'
+        assert utils.truncate_id('sha256:4e38e38c8ce0b8d90'
+                                 '41a9c4fefe786631d1416225'
+                                 'e13b0bfe8cfa2321aec4bba') == '4e38e38c8ce0'
+        # This makes no sense.
+        # XXX: This should be an error.
+        assert utils.truncate_id('0:1:23456789ABCDEF') == '1:23456789AB'
+
+    def test_generate_random_id(self):
+        def is_a_decimal_integer(value):
+            try:
+                int(value)
+                return True
+            except ValueError:
+                return False
+
+        for _ in range(100):
+            random_id = utils.generate_random_id()
+            # Make sure the ID is in an hexadecimal form.
+            assert int(random_id, base=16)
+            # Make sure the ID is not a decimal integer.
+            assert not is_a_decimal_integer(random_id)
